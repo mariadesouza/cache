@@ -1,0 +1,2 @@
+#redis cli
+docker exec -it  segment-redis redis-cli

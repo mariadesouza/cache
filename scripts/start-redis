@@ -1,0 +1,6 @@
+# This can be used to start redis in docker if not using docker for the web-server
+# USed for debugging etc.
+
+echo "## Starting Redis container"
+docker run --name segment-redis -p 6379:6379 --rm redis
+export SEGMENT_REDIS_SERVER="0.0.0.0"

@@ -1,0 +1,44 @@
+#!/bin/bash
+
+ACTION=${1:-start}
+
+# third party packages
+#go get -u
+
+if [[ $ACTION == "start" && "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:8080)" == "200" ]]; then
+  echo "Redis Proxy API server running at http://localhost:8082/"
+  exit 0
+fi
+
+if [[ $ACTION == "rebuild" ]]; then
+  if [ "$(docker ps -q -f name=segment-webserver)" ]; then
+    echo "Stopping running containers"
+    docker/stop
+  fi
+  echo "Building API server sources"
+  GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -a -o webserver/segment-webserver webserver/webserver.go || exit 1
+  echo "Building API server container"
+  docker-compose up --build -d || exit 1
+else
+  if [[ ! "$(docker images webserver -q)" ]]; then
+    echo "Building API server sources"
+    GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -a -o webserver/segment-webserver webserver/webserver.go || exit 1
+  fi
+  echo "Starting API server container"
+  docker-compose up -d || exit 1
+fi
+
+if [ -e webserver/segment-webserver ]; then rm webserver/segment-webserver; fi
+
+while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:8082)" != "200" ]]; do
+    printf '.'
+    sleep 2;
+done
+
+#echo "API server running at http://localhost:8082/"
+#echo "Running server test"
+#go build  -o tests/webserver-test tests/webserver-test.go  || exit 1
+#tests/webserver-test
+#rm tests/webserver-test
+
+echo "Done"

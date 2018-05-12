@@ -1,0 +1,20 @@
+version: '2.1'
+services:
+  segment-webserver:
+    image: segment-webserver
+    read_only: true
+    build:
+      context: .
+      dockerfile: webserver/Dockerfile
+    ports:
+      - "8082:8082"
+    links:
+     - segment-redis
+    environment:
+      - SEGMENT_REDIS_SERVER=segment-redis
+      - SEGMENT_REDIS_PORT=6379
+      - SEGMENT_CACHE_EXPIRY=180
+  segment-redis:
+    image: redis
+    ports:
+     - "6379:6379"

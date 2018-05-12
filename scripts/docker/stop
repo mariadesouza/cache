@@ -1,0 +1,2 @@
+docker stop $(docker ps -a -q --filter name=segment-webserver --format="{{.ID}}")
+docker stop $(docker ps -a -q --filter name=segment-redis --format="{{.ID}}")
