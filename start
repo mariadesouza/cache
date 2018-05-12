@@ -5,7 +5,7 @@ ACTION=${1:-start}
 # third party packages
 #go get -u
 
-if [[ $ACTION == "start" && "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:8080)" == "200" ]]; then
+if [[ $ACTION == "start" && "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:8082)" == "200" ]]; then
   echo "Redis Proxy API server running at http://localhost:8082/"
   exit 0
 fi
@@ -35,7 +35,7 @@ while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:8082)" != "200" ]
     sleep 2;
 done
 
-#echo "API server running at http://localhost:8082/"
+echo "API server running at http://localhost:8082/"
 #echo "Running server test"
 #go build  -o tests/webserver-test tests/webserver-test.go  || exit 1
 #tests/webserver-test

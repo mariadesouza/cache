@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/mariadesouza/segment/lrucache"
+	"github.com/mariadesouza/redisproxyserver/lrucache"
 )
 
 //Redisproxy :

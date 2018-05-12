@@ -38,7 +38,7 @@ func newRedisConnection(redisServer string, port string) (*redisServerConn, erro
 	dialer := net.Dialer{KeepAlive: time.Minute * 5}
 	var redis redisServerConn
 	var err error
-	redis.redisConnection, err = dialer.Dial("tcp", "0.0.0.0:"+port)
+	redis.redisConnection, err = dialer.Dial("tcp", redisServer+":"+port)
 	if err != nil {
 		return nil, err
 	}

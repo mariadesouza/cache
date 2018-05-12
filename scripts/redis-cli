@@ -1,2 +1,10 @@
-#redis cli
-docker exec -it  segment-redis redis-cli
+#!/bin/bash
+
+#local
+STATE=${1:-docker}
+
+if [[ $STATE == "local" ]]; then
+  docker exec -it  redis redis-cli
+else
+  docker exec -it  redisproxyserver_redis_1 redis-cli
+fi

@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"strconv"
 
-	"github.com/mariadesouza/segment/redisproxy"
+	"github.com/mariadesouza/redisproxyserver/redisproxy"
 )
 
 /*
@@ -24,8 +24,7 @@ func main() {
 
 	redisServer := os.Getenv("SEGMENT_REDIS_SERVER")
 	if redisServer == "" {
-		log.Println("No Redis server set. Use SEGMENT_REDIS_SERVER environment variable to set value.")
-		os.Exit(1)
+		redisServer= "redis"
 	}
 
 	redisPort := os.Getenv("SEGMENT_REDIS_PORT")
@@ -46,11 +45,12 @@ func main() {
 		log.Println(err)
 		os.Exit(1)
 	}
+
 	defer redisProxy.redis.Close()
 	http.HandleFunc("/", indexHandlerHelloWorld)
 	http.HandleFunc("/redisproxy", redisProxy.IndexHandlerRedisproxy)
 	log.Println("Redis Proxy webserver listening for requests")
-	log.Fatal(http.ListenAndServe(":8082", nil))
+	http.ListenAndServe(":8082", nil)
 }
 
 func indexHandlerHelloWorld(w http.ResponseWriter, r *http.Request) {
@@ -62,20 +62,31 @@ func (s *redisProxyServer) Close() {
 }
 
 func (s *redisProxyServer) IndexHandlerRedisproxy(w http.ResponseWriter, r *http.Request) {
-	keys, ok := r.URL.Query()["key"]
-	if !ok || len(keys) < 1 {
-		handleError(w, http.StatusBadRequest, "Url Param 'key' is missing")
-		return
-	}
-	key := keys[0]
-	value, err := s.redis.Get(key)
-	if err != nil {
-		handleError(w, http.StatusNotFound, key+"not found:"+err.Error())
-		return
-	}
-	response := fmt.Sprintf(`{"key": "%s","value": "%s"}`, key, value)
-	fmt.Fprintln(w, response)
+
+	switch method := r.Method; method {
+		case "GET":
+			keys, ok := r.URL.Query()["key"]
+			if (!ok || len(keys) < 1 ){
+				 handleError(w, http.StatusBadRequest, "Url Param 'key' is missing")
+				 return
+			}
+			key := keys[0]
+			value, err := s.redis.Get(key)
+			if err != nil {
+				handleError(w, http.StatusNotFound, key+"not found:"+err.Error())
+				return
+			}
+			response := fmt.Sprintf(`{"key": "%s","value": "%s"}`, key, value)
+			fmt.Fprintln(w, response)
+		case "PUT":
+			 handleError(w, http.StatusNotImplemented,"" ) //TODO
+		default:
+			 handleError(w, http.StatusNotImplemented,"")
+		}
+	return
+
 }
+
 
 func handleError(w http.ResponseWriter, status int, message string) {
 
