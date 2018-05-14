@@ -32,6 +32,10 @@ Adds a key, value element to the cache
         string - contains value corresponding to key
         bool - is true if the key exists in the cache
 
+### (\*LRUCache) Remove
+
+Input:
+  key string
 
 #Contributors
 * [Maria DeSouza](maria.g.desouza@gmail.com)

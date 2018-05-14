@@ -7,18 +7,13 @@ import (
 	"os"
 	"runtime"
 	"strconv"
-
-	"github.com/mariadesouza/redisproxyserver/redisproxy"
+  "github.com/mariadesouza/redisproxyserver/redisproxy"
 )
 
-/*
-
-
- */
-
 type redisProxyServer struct {
-	redis *redisproxy.Redisproxy
+	Redis *redisproxy.Redisproxy
 }
+
 
 func main() {
 
@@ -40,15 +35,15 @@ func main() {
 
 	var redisProxy redisProxyServer
 
-	redisProxy.redis, err = redisproxy.New(redisServer, redisPort, 10, cacheExpiry*60)
+	redisProxy.Redis, err = redisproxy.New(redisServer, redisPort, 10, cacheExpiry*60)
 	if err != nil {
 		log.Println(err)
 		os.Exit(1)
 	}
 
-	defer redisProxy.redis.Close()
+	defer redisProxy.Redis.Close()
 	http.HandleFunc("/", indexHandlerHelloWorld)
-	http.HandleFunc("/redisproxy", redisProxy.IndexHandlerRedisproxy)
+	http.HandleFunc("/redisproxy", redisProxy.HandlerRedisproxyRequest)
 	log.Println("Redis Proxy webserver listening for requests")
 	http.ListenAndServe(":8082", nil)
 }
@@ -58,11 +53,11 @@ func indexHandlerHelloWorld(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *redisProxyServer) Close() {
-	s.redis.Close()
+	s.Redis.Close()
 }
 
-func (s *redisProxyServer) IndexHandlerRedisproxy(w http.ResponseWriter, r *http.Request) {
 
+func  (s *redisProxyServer) HandlerRedisproxyRequest(w http.ResponseWriter, r *http.Request) {
 	switch method := r.Method; method {
 		case "GET":
 			keys, ok := r.URL.Query()["key"]
@@ -71,9 +66,9 @@ func (s *redisProxyServer) IndexHandlerRedisproxy(w http.ResponseWriter, r *http
 				 return
 			}
 			key := keys[0]
-			value, err := s.redis.Get(key)
+			value, err := getValueFromRedisProxy(s, key)
 			if err != nil {
-				handleError(w, http.StatusNotFound, key+"not found:"+err.Error())
+				handleError(w, http.StatusNotFound, key+" not found: "+err.Error())
 				return
 			}
 			response := fmt.Sprintf(`{"key": "%s","value": "%s"}`, key, value)
@@ -85,6 +80,14 @@ func (s *redisProxyServer) IndexHandlerRedisproxy(w http.ResponseWriter, r *http
 		}
 	return
 
+}
+
+func  getValueFromRedisProxy(s *redisProxyServer, key string) (string, error){
+	value, err := s.Redis.Get(key)
+		if err != nil {
+			return "", err
+	}
+	return value.(string), err
 }
 
 

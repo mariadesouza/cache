@@ -41,7 +41,7 @@ func (r *Redisproxy) Close() {
 }
 
 // Get : fetch value of key from cache/redis
-func (r *Redisproxy) Get(key string) (string, error) {
+func (r *Redisproxy) Get(key string) (interface{}, error) {
 
 	// look into LRUCache
 	if value, ok := r.cache.Get(key); ok {

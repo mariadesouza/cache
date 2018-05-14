@@ -11,7 +11,7 @@ import (
 // for now value is string but we could make the value an interface
 type node struct {
 	key        string
-	value      string
+	value      interface{}
 	expiration int64
 }
 
@@ -40,7 +40,7 @@ func New(capacity int, ttlSeconds time.Duration) *LRUCache {
 		capacity = 1
 	}
 	if ttlSeconds == 0 {
-		ttlSeconds = 10
+		ttlSeconds = 180
 	}
 	return &LRUCache{
 		capacity:   capacity,
@@ -51,7 +51,7 @@ func New(capacity int, ttlSeconds time.Duration) *LRUCache {
 }
 
 //Add : add node to LRUCache
-func (c *LRUCache) Add(key string, value string) {
+func (c *LRUCache) Add(key string, value interface{}) {
 
 	if c.cache == nil {
 		c.cache = make(map[string]*list.Element)
@@ -68,26 +68,40 @@ func (c *LRUCache) Add(key string, value string) {
 		return
 	}
 	// make New - Add it to front of the list
-	expireTime := time.Now().Add(c.ttlSeconds).UnixNano()
+	expireTime := time.Now().Add(time.Second * c.ttlSeconds).UnixNano()
 	element := c.doubleList.PushFront(&node{key, value, expireTime})
 	c.cache[key] = element
-
 	// remove the least recently used element from the back of the list
 	if c.doubleList.Len() > c.capacity {
 		last := c.doubleList.Back()
-		c.remove(last)
+		c.removeNode(last)
 	}
 	c.mu.Unlock()
 }
 
-func (c *LRUCache) remove(e *list.Element) {
+//Remove : Remove a key
+func (c *LRUCache) Remove(key string) bool{
+
+	if c.cache == nil {
+		return false
+	}
+
+	if element, ok := c.cache[key]; ok {
+		c.removeNode(element)
+		return true
+	}
+
+	return false
+}
+
+func (c *LRUCache) removeNode(e *list.Element) {
 	key := e.Value.(*node).key
 	c.doubleList.Remove(e)
 	delete(c.cache, key)
 }
 
 // Get : fetch value for key from cache if exists
-func (c *LRUCache) Get(key string) (string, bool) {
+func (c *LRUCache) Get(key string) (interface{}, bool) {
 	if c.cache == nil {
 		return "", false
 	}
@@ -95,8 +109,8 @@ func (c *LRUCache) Get(key string) (string, bool) {
 	if element, ok := c.cache[key]; ok {
 		n := element.Value.(*node)
 		if n.expiration > 0 {
-			if time.Now().UnixNano() > n.expiration { // has expired remove it
-				c.remove(element)
+				if time.Now().UnixNano() > n.expiration { // has expired remove it
+				c.removeNode(element)
 				c.mu.RUnlock()
 				return "", false
 			}
