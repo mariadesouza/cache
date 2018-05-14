@@ -21,24 +21,32 @@ func (f *mockRedis) Send(args ...string) error{
   return nil
 }
 
-func NewTest(cacheCapacity int, cacheExpirySeconds int64) (*RedisProxy, error) {
+func setupNewTest(cacheCapacity int, cacheExpirySeconds int64) (*RedisProxy, string, string) {
   var redisproxy RedisProxy
 	expiryTime := time.Duration(cacheExpirySeconds)
 	redisproxy.cache = lrucache.New(cacheCapacity, expiryTime)
   redisproxy.redisConn = &mockRedis{}
-	return &redisproxy, nil
-}
-
-func TestGet(t *testing.T){
   value:= "apple"
   key := "fruit"
-  redisproxy, _ := NewTest(5,10)
+  redisproxy.cache.Add(key, value)
+  return &redisproxy, key, value
+}
+
+func TestGetSuccess(t *testing.T){
+  redisproxy, key, value := setupNewTest(5,10)
   redisproxy.cache.Add(key, value)
   res, err := redisproxy.Get(key)
   if err != nil {
-    t.Errorf("cache returned error %v", err)
+    t.Errorf("redisproxy returned error %v", err)
   } else if value != res {
-    t.Errorf("cache returned = %v; want: %v", value, res)
+    t.Errorf("redisproxy returned = %v; want: %v", res, value)
   }
+}
 
+func TestGetNonExistingKey(t *testing.T){
+  redisproxy, _, _ := setupNewTest(5,10)
+  res, _ := redisproxy.Get("notthere")
+  if res != "" {
+    t.Errorf("redisproxy returned = %v; want: ", res)
+  }
 }

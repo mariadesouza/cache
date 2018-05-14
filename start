@@ -44,8 +44,6 @@ scripts/redis/add-test-data
 echo "Running server test"
 
 echo "Running server test"
-#go build  -o tests/webserver-test tests/webserver-test.go  || exit 1
-go run tests/webserver-test.go
-#rm tests/webserver-test
+go run test-client/testclient.go
 
 echo "Done"

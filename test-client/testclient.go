@@ -8,7 +8,7 @@ import (
 )
 
 // This is basic functional testing of the redis proxy webserver
-// Test data is added from scripts/redis/add-test-data
+// Test data is added via scripts/redis/add-test-data
 
 const (
 	baseURL = "http://localhost:8082/"
@@ -21,6 +21,7 @@ var testTable = []struct {
 } {
   {"redisproxy?key=jane", http.StatusOK, "mybuddy"},
   {"redisproxy?key=jack", http.StatusOK, "benimble"},
+  {"redisproxy?key=pageviews", http.StatusOK, "11"},
   {"redisproxy?key=unknown", http.StatusNotFound, ""},
 }
 

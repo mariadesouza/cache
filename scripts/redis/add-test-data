@@ -1,0 +1,5 @@
+#!/bin/bash
+docker run -it --link redisproxyserver_redis_1:redis --net redisproxyserver_default --rm redis redis-cli -h redis mset jack "benimble" jill "bequick"  >/dev/null
+docker run -it --link redisproxyserver_redis_1:redis --net redisproxyserver_default --rm redis redis-cli -h redis set pageviews "10" >/dev/null
+docker run -it --link redisproxyserver_redis_1:redis --net redisproxyserver_default --rm redis redis-cli -h redis INCR pageviews >/dev/null
+docker run -it --link redisproxyserver_redis_1:redis --net redisproxyserver_default --rm redis redis-cli -h redis set jane mybuddy

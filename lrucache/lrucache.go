@@ -8,7 +8,6 @@ import (
 	"time"
 )
 
-// for now value is string but we could make the value an interface
 type node struct {
 	key        string
 	value      interface{}

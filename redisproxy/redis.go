@@ -63,7 +63,7 @@ func (r *redisServerConn) writeString(s string) error {
 	return err
 }
 
-//Send : Use to  Send cmd and args to redis connection
+//Send : Send cmd and args to redis connection. cmds can be GET, SET
 func (r *redisServerConn) Send(args ...string) error {
 
 	_, err := r.writer.Write(arrayPrefixString)
@@ -82,8 +82,6 @@ func (r *redisServerConn) Send(args ...string) error {
 			return err
 		}
 
-		//value := fmt.Sprintf("%v", arg) // for now just convert to string
-
 		if err := r.writeString(strconv.Itoa(len(arg))); err != nil {
 			return err
 		}
@@ -95,8 +93,9 @@ func (r *redisServerConn) Send(args ...string) error {
 	return r.writer.Flush()
 }
 
+//Receive: receive the response from redis
+//RESP uses prefix so we first need to read the first byte and then decide how to handle the following bytes
 func (r *redisServerConn) Receive() ([]byte, error) {
-	fmt.Println("Receiving")
 	line, err := r.readLine()
 	if err != nil {
 		return nil, err
@@ -104,23 +103,21 @@ func (r *redisServerConn) Receive() ([]byte, error) {
 	if len(line) == 0 {
 		return nil, fmt.Errorf("inadequate response line")
 	}
-	// Not done bulk response yet
+
 	switch line[0] {
 	case arrayPrefix:
 		return r.readArray(line)
 	case simpleStringPrefix, integerPrefix, errorPrefix:
 		return line, nil
 	case bulkPrefix:
-		fmt.Println("bulk string")
 		result, err := r.readBulkString(line)
 		if err != nil {
 			fmt.Println(err)
-		} else {
-			fmt.Println(result)
+		} else {			fmt.Println(result)
 		}
 		return result, err
 	default:
-		return nil, errors.New("resp: invalid syntax")
+		return nil, errors.New("RESP: invalid syntax")
 	}
 }
 
@@ -128,8 +125,8 @@ func (r *redisServerConn) getLen(line []byte) (int, error) {
 	if len(line) == 0 {
 		return -1, fmt.Errorf("malformed length")
 	}
-	if line[0] == '-' && len(line) == 2 && line[1] == '1' { // incase we get $-1
-		return -1, fmt.Errorf("malformed length")
+	if line[0] == '-' && len(line) == 2 && line[1] == '1' { // null bulk string
+		return -1, fmt.Errorf("returned null")
 	}
 
 	var n int
@@ -167,6 +164,7 @@ func (r *redisServerConn) readBulkString(line []byte) ([]byte, error) {
 
 }
 
+// readArray : not tested
 func (r *redisServerConn) readArray(line []byte) ([]byte, error) {
 	end := bytes.IndexByte(line, '\r')
 	count, _ := strconv.Atoi(string(line[1:end]))
@@ -180,6 +178,7 @@ func (r *redisServerConn) readArray(line []byte) ([]byte, error) {
 	return line, nil
 }
 
+// readLine reads one line till we find \r\n. It will return the line without the line endings
 func (r *redisServerConn) readLine() ([]byte, error) {
 	line, err := r.reader.ReadSlice('\n')
 	if err != nil {

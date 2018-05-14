@@ -1,7 +1,6 @@
 package redisproxy
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/mariadesouza/redisproxyserver/lrucache"
@@ -38,7 +37,6 @@ func (r *RedisProxy) Get(key string) (interface{}, error) {
 	if value, ok := r.cache.Get(key); ok {
 		return value, nil
 	}
-	fmt.Println("not found - lets look in redis")
 	//does not exist - look in redis
 	value, err := r.getRedisValue(key)
 	if err != nil {
