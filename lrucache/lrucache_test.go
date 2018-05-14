@@ -46,7 +46,7 @@ func TestLRUCacheExpiration(t *testing.T){
 
   lruCache := New(5,1)
   lruCache.Add(key, "buddy")
-  time.Sleep(5*time.Second)
+  time.Sleep(2*time.Second)
   _, ok := lruCache.Get(key)
 	if ok != expectedResult {
 		  t.Errorf("cache returned = %v; want: %v", ok, expectedResult)

@@ -11,15 +11,6 @@ import(
 )
 
 
-
-/*
-
-// This will mock our redisProxyServer object
-type mockRedisProxyServer struct {
-	redis *mockRedisProxyConnector
-}
-*/
-
 func TestErrorResponsesHandlerRedisproxy(t *testing.T) {
 
   var redisProxy redisProxyServer

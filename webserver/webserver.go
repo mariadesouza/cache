@@ -11,7 +11,7 @@ import (
 )
 
 type redisProxyServer struct {
-	Redis *redisproxy.Redisproxy
+	Redis *redisproxy.RedisProxy
 }
 
 
