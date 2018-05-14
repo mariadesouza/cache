@@ -12,7 +12,7 @@ The redisproxy server handles the GET request for a key. There are two packages 
 
 ## lrucache
 
-The LRU cache is implemented using a doubly linked list and a hashmap guarded by a reader/writer mutual exclusion lock. Each item has an expiration. If an element is expired it is removed from cache. Each time an item is fetched from the cache it is promoted to front provided it is not expired. When a new element is to be added and the cache has reached capacity, the least recently used item is removed from the cache.
+The LRU cache is implemented using a doubly linked list and a hashmap. It is guarded by a reader/writer mutual exclusion lock that will help prevent contention when high read rates occur concurrently. Each item has an expiration. If an element is expired it is removed from cache. Each time an item is fetched from the cache it is promoted to front provided it is not expired. When a new element is to be added and the cache has reached capacity, the least recently used item is removed from the cache.
 
 
 ## redisproxy
@@ -59,22 +59,31 @@ For docker these are configured in the docker compose file
     ```
     ./start
     ```
-* stop script will stop docker containers
-        ```
-        docker/stop
-        ```
-* clean docker images so it can be rebuilt from sources
-        ```
-        docker/clean
-        ```
 * rebuild docker image with new code changes
-        ```
-        ./start rebuild
-        ```
+    ```
+    ./start rebuild
+    ```
+* stop script will stop docker containers
+    ```
+    scripts/docker/stop
+    ```
+* clean docker images so it can be rebuilt from sources
+    ```
+    scripts/docker/clean
+    ```
+* run redis-cli
+  ```
+  scripts/redis/redis-cli
+  ```
+* start redis without docker compose
+    ```
+    scripts/redis/start-redis
+    ```
 
 # References
 
 - [Reddis](https://redis.io/commands/set)
+- [Reddis Serialization Protocol] (https://redis.io/topics/protocol)
 - [Golang](https://golang.org/pkg/)
 
 
