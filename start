@@ -30,15 +30,22 @@ fi
 
 if [ -e webserver/segment-webserver ]; then rm webserver/segment-webserver; fi
 
+
+
 while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:8082)" != "200" ]]; do
     printf '.'
     sleep 2;
 done
 
 echo "API server running at http://localhost:8082/"
-#echo "Running server test"
+
+echo "Adding test data"
+scripts/redis/add-test-data
+echo "Running server test"
+
+echo "Running server test"
 #go build  -o tests/webserver-test tests/webserver-test.go  || exit 1
-#tests/webserver-test
+go run tests/webserver-test.go
 #rm tests/webserver-test
 
 echo "Done"

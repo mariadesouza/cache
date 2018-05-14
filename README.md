@@ -55,6 +55,10 @@ For docker these are configured in the docker compose file
 
 * Clone this repo into $GOPATH
 
+* To run unit tests
+  ```
+  make test
+  ```
 * Run start script
     ```
     ./start

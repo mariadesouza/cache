@@ -16,7 +16,6 @@ type redisServerConn struct {
 	redisConnection net.Conn
 	reader          *bufio.Reader
 	writer          *bufio.Writer
-	//readTimeout???
 }
 
 var (
@@ -56,7 +55,6 @@ func (r *redisServerConn) CloseConnection() error {
 }
 
 func (r *redisServerConn) writeString(s string) error {
-	fmt.Println("Sending", s)
 	_, err := r.writer.WriteString(s)
 	if err != nil {
 		return err
@@ -148,8 +146,6 @@ func (r *redisServerConn) readBulkString(line []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	//count, err := r.getLen(line[1:])
-	fmt.Println(count)
 
 	if count == -1 {
 		return line, nil

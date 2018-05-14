@@ -25,7 +25,6 @@ func (n *node) Expired() bool {
 // LRUCache : least recently used cache
 // doubleList is a double linked that makes  add/remove O(1)
 // the cache is a hash map of keys to elements makes get O(1)
-// TODO: add mutex for concurrent access
 type LRUCache struct {
 	capacity   int
 	ttlSeconds time.Duration // in seconds
