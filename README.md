@@ -1,6 +1,6 @@
 # Redis Proxy webserver
 
-A simple redis proxy server that uses an in memory LRU cache to speed up data access from redis. The cache items also have an expiration to keep data up to date.
+A simple redis proxy server that uses an in memory LRU cache to speed up data access from Redis. The cache items also have an expiration to keep data up to date.
 
 # Design
 
@@ -10,19 +10,19 @@ The redisproxy server handles the GET request for a key. There are two packages 
 
 ## lrucache
 
-The LRU cache is implemented using a doubly linked list and a hashmap. This makes the algorithmic complexity for retrieval from the hashmap O(1) and the add/delete operations O(1). This allows the It is guarded by a reader/writer mutual exclusion lock that will help prevent contention when high read rates occur concurrently. Each item has an expiration. If an element is expired it is removed from cache. Each time an item is fetched from the cache it is promoted to front provided it is not expired. When a new element is to be added and the cache has reached capacity, the least recently used item is removed from the cache.
+The LRU cache is implemented using a doubly linked list and a hashmap. This makes the algorithmic complexity for retrieval from the hashmap O(1). If we have the address of the node, the add/delete operations on the doubly linked list are O(1). The cache is guarded by a reader/writer mutual exclusion lock that will help prevent contention when high read rates occur concurrently. Each item has an expiration. If an element has expired, it is removed from the cache. Each time an item is fetched from the cache it is promoted to the front provided it has not expired. When a new element is to be added and the cache has reached capacity, the least recently used item is removed from the cache.
 
 ## redisproxy
 
-The redisproxy package manages the connection to the cache as well as the backing Redis service instance. The Get method will try to fetch a value from the LRU cache. If no value is found, it tries to get the value from the Redis server and if successful, adds it to the cache and returns the value back. The Redis proxy also implements a Redis client in GO that sends and receives RESP commands.
+The redisproxy package manages the connection to the cache as well as the connection to the backing Redis service instance. The Get method will try to fetch a value from the LRU cache. If no value is found, it tries to get the value from the backing Redis server. If successful retrieved from redis, it adds it to the cache and returns the value back. The Redis proxy also implements a Redis client in GO that sends and receives RESP commands.
 
-The Redis client is not a full featured redis client. I have implemented the basic redis send and receive so   values can be retrieved using this package. I used the stdlib bufio reader and writer to send the Redis commands and receive the response. The package can also process SET commands.  
+The Redis client is not a full featured redis client. I have implemented the basic redis send and receive so   values can be retrieved as required for implementation. I used the stdlib bufio reader and writer to send the Redis commands and receive the response. The package can also process SET commands.
 
 # Assumptions
 
-- The redis proxy server only currently supports GET of strings and can be expanded to handle the other data types as well as set. The underlying redis connection as part of the redisproxy package can handle set. It cannot handle complex responses like arrays yet.
+- The redis proxy server currently only supports GET of strings and can be expanded to handle the other data types as well as set. Note that the underlying Redis client connection as part of the redisproxy package can handle set as well. The current implementation cannot handle complex responses like arrays as yet.
 
-- I have added some test data to the Redis instance to run tests. The assumption is that it will have data pre-propulated by another process.
+- I have added some test data to the Redis instance to run tests. The assumption is that it will have data pre-populated by another process.
 
 - When a key is not found it will return a 404 with an empty value rather than an OK with a (nil) value.
 
@@ -83,10 +83,9 @@ For docker these are configured in the docker compose file
 
 # References
 
-- [Reddis](https://redis.io/commands/set)
-- [Reddis Serialization Protocol] (https://redis.io/topics/protocol)
+- [Redis](https://redis.io/commands/set)
+- [RedisSerializationProtocol] (https://redis.io/topics/protocol)
 - [Golang](https://golang.org/pkg/)
-
 
 # Contributors
 * [Maria DeSouza](maria.g.desouza@gmail.com)
