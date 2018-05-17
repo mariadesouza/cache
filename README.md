@@ -12,6 +12,8 @@ The redisproxy server handles the GET request for a key. There are two packages 
 
 The LRU cache is implemented using a doubly linked list and a hashmap. This makes the algorithmic complexity for retrieval from the hashmap O(1). If we have the address of the node, the add/delete operations on the doubly linked list are O(1). The cache is guarded by a reader/writer mutual exclusion lock that will help prevent contention when high read rates occur concurrently. Each item has an expiration. If an element has expired, it is removed from the cache. Each time an item is fetched from the cache it is promoted to the front provided it has not expired. When a new element is to be added and the cache has reached capacity, the least recently used item is removed from the cache.
 
+The LRUShardedCache adds sharding to the LRU Cache. It creates multiple shards of the LRUCache based on the hash of the key.  Using this we can have better concurrent use of the cache.
+
 ## redisproxy
 
 The redisproxy package manages the connection to the cache as well as the connection to the backing Redis service instance. The Get method will try to fetch a value from the LRU cache. If no value is found, it tries to get the value from the backing Redis server. If successful retrieved from redis, it adds it to the cache and returns the value back. The Redis proxy also implements a Redis client in GO that sends and receives RESP commands.
@@ -84,7 +86,7 @@ For docker these are configured in the docker compose file
 # References
 
 - [Redis](https://redis.io/commands/set)
-- [RedisSerializationProtocol] (https://redis.io/topics/protocol)
+- [RedisSerializationProtocol](https://redis.io/topics/protocol)
 - [Golang](https://golang.org/pkg/)
 
 # Contributors

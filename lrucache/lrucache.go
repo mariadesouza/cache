@@ -27,97 +27,86 @@ func (n *node) Expired() bool {
 type LRUCache struct {
 	capacity   int
 	ttlSeconds time.Duration // in seconds
-	cache      map[string]*list.Element
+	items      map[string]*list.Element
 	doubleList *list.List
-	mu         sync.RWMutex
+	lock       *sync.RWMutex
 }
 
-// New : create new LRUCache
+// New  : create a new LRUcache
 func New(capacity int, ttlSeconds time.Duration) *LRUCache {
 	if capacity == 0 { // set minimum capacity to 1
-		capacity = 1
+		capacity = 5
 	}
 	if ttlSeconds == 0 {
 		ttlSeconds = 180
 	}
+
 	return &LRUCache{
 		capacity:   capacity,
 		ttlSeconds: ttlSeconds,
-		cache:      make(map[string]*list.Element),
+		items:      make(map[string]*list.Element, capacity),
 		doubleList: list.New(),
+		lock:       new(sync.RWMutex),
 	}
 }
 
-//Add : add node to LRUCache
-func (c *LRUCache) Add(key string, value interface{}) {
-
-	if c.cache == nil {
-		c.cache = make(map[string]*list.Element)
-		c.doubleList = list.New()
-	}
-	c.mu.Lock()
+//Set : Set key value in cache.
+func (s *LRUCache) Set(key string, value interface{}) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
 	// check if it exists already
-	if element, ok := c.cache[key]; ok {
+	if element, ok := s.items[key]; ok {
 		//found item - promote it
-		c.doubleList.MoveToFront(element)
+		s.doubleList.MoveToFront(element)
 		element.Value.(*node).key = key
 		element.Value.(*node).value = value
-		c.mu.Unlock()
 		return
 	}
 	// make New - Add it to front of the list
-	expireTime := time.Now().Add(time.Second * c.ttlSeconds).UnixNano()
-	element := c.doubleList.PushFront(&node{key, value, expireTime})
-	c.cache[key] = element
+	expireTime := time.Now().Add(time.Second * s.ttlSeconds).UnixNano()
+	element := s.doubleList.PushFront(&node{key, value, expireTime})
 	// remove the least recently used element from the back of the list
-	if c.doubleList.Len() > c.capacity {
-		last := c.doubleList.Back()
-		c.removeNode(last)
+	if s.doubleList.Len() > s.capacity {
+		//fmt.Println("exceeded capacity")
+		last := s.doubleList.Back()
+		s.removeNode(last)
 	}
-	c.mu.Unlock()
+	s.items[key] = element
 }
 
-//Remove : Remove a key
-func (c *LRUCache) Remove(key string) bool{
-
-	if c.cache == nil {
-		return false
-	}
-
-	if element, ok := c.cache[key]; ok {
-		c.removeNode(element)
-		return true
-	}
-
-	return false
-}
-
-func (c *LRUCache) removeNode(e *list.Element) {
-	key := e.Value.(*node).key
-	c.doubleList.Remove(e)
-	delete(c.cache, key)
-}
-
-// Get : fetch value for key from cache if exists
-func (c *LRUCache) Get(key string) (interface{}, bool) {
-	if c.cache == nil {
+// Get : Get value of key from cache
+func (s *LRUCache) Get(key string) (interface{}, bool) {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+	if s.items == nil {
 		return "", false
 	}
-	c.mu.RLock()
-	if element, ok := c.cache[key]; ok {
+	if element, ok := s.items[key]; ok {
 		n := element.Value.(*node)
 		if n.expiration > 0 {
-				if time.Now().UnixNano() > n.expiration { // has expired remove it
-				c.removeNode(element)
-				c.mu.RUnlock()
+			if time.Now().UnixNano() > n.expiration { // has expired remove it
+				s.removeNode(element)
 				return "", false
 			}
 		}
 		//found item - promote it
-		c.doubleList.MoveToFront(element)
-		c.mu.RUnlock()
+		s.doubleList.MoveToFront(element)
 		return element.Value.(*node).value, ok
 	}
-	c.mu.RUnlock()
 	return "", false
+}
+
+//Remove : Remove  from cache
+func (s *LRUCache) Remove(key string) bool {
+	if element, ok := s.items[key]; ok {
+		s.removeNode(element)
+		return true
+	}
+	return false
+}
+
+func (s *LRUCache) removeNode(e *list.Element) {
+	key := e.Value.(*node).key
+	s.doubleList.Remove(e)
+	delete(s.items, key)
 }

@@ -10,6 +10,7 @@ import (
 type RedisProxy struct {
 	redisConn interface{}
 	cache     *lrucache.LRUCache
+	//cache *lrucache.LRUShardedCache
 }
 
 //New : create new redisproxy object
@@ -22,6 +23,7 @@ func New(redisServer string, port string, cacheCapacity int, cacheExpirySeconds 
 	}
 	expiryTime := time.Duration(cacheExpirySeconds)
 	redisproxy.cache = lrucache.New(cacheCapacity, expiryTime)
+	//redisproxy.cache = lrucache.NewShardedCache(cacheCapacity, expiryTime)
 	return &redisproxy, nil
 }
 
@@ -44,23 +46,23 @@ func (r *RedisProxy) Get(key string) (interface{}, error) {
 	}
 
 	// found it - set it in cache
-	r.cache.Add(key, value)
+	r.cache.Set(key, value)
 	return value, nil
 }
 
 func (r *RedisProxy) getRedisValue(key string) (string, error) {
-		redisConn, ok := r.redisConn.(*redisServerConn)
-		if ok{
-			err := redisConn.Send("GET", key)
-			if err != nil {
-				return "", err
-			}
-			response, err := r.redisConn.(*redisServerConn).Receive()
-			if err != nil {
-				return "", err
-			}
-			value := string(response[:])
-			return value, nil
+	redisConn, ok := r.redisConn.(*redisServerConn)
+	if ok {
+		err := redisConn.Send("GET", key)
+		if err != nil {
+			return "", err
+		}
+		response, err := r.redisConn.(*redisServerConn).Receive()
+		if err != nil {
+			return "", err
+		}
+		value := string(response[:])
+		return value, nil
 	}
 	return "", nil
 }

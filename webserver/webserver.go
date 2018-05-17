@@ -7,19 +7,19 @@ import (
 	"os"
 	"runtime"
 	"strconv"
-  "github.com/mariadesouza/redisproxyserver/redisproxy"
+
+	"github.com/mariadesouza/redisproxyserver/redisproxy"
 )
 
 type redisProxyServer struct {
 	Redis *redisproxy.RedisProxy
 }
 
-
 func main() {
 
 	redisServer := os.Getenv("SEGMENT_REDIS_SERVER")
 	if redisServer == "" {
-		redisServer= "redis"
+		redisServer = "redis"
 	}
 
 	redisPort := os.Getenv("SEGMENT_REDIS_PORT")
@@ -33,9 +33,15 @@ func main() {
 		cacheExpiry = 10
 	}
 
+	var cacheCapacity int
+	cacheCapacity, err = strconv.Atoi(os.Getenv("SEGMENT_CACHE_CAPACITY"))
+	if err != nil || cacheCapacity == 0 {
+		cacheCapacity = 1
+	}
+
 	var redisProxy redisProxyServer
 
-	redisProxy.Redis, err = redisproxy.New(redisServer, redisPort, 10, cacheExpiry*60)
+	redisProxy.Redis, err = redisproxy.New(redisServer, redisPort, cacheCapacity, cacheExpiry)
 	if err != nil {
 		log.Println(err)
 		os.Exit(1)
@@ -56,40 +62,38 @@ func (s *redisProxyServer) Close() {
 	s.Redis.Close()
 }
 
-
-func  (s *redisProxyServer) HandlerRedisproxyRequest(w http.ResponseWriter, r *http.Request) {
+func (s *redisProxyServer) HandlerRedisproxyRequest(w http.ResponseWriter, r *http.Request) {
 	switch method := r.Method; method {
-		case "GET":
-			keys, ok := r.URL.Query()["key"]
-			if (!ok || len(keys) < 1 ){
-				 handleError(w, http.StatusBadRequest, "Url Param 'key' is missing")
-				 return
-			}
-			key := keys[0]
-			value, err := getValueFromRedisProxy(s, key)
-			if err != nil {
-				handleError(w, http.StatusNotFound, key+" not found: "+err.Error())
-				return
-			}
-			response := fmt.Sprintf(`{"key": "%s","value": "%s"}`, key, value)
-			fmt.Fprintln(w, response)
-		case "PUT":
-			 handleError(w, http.StatusNotImplemented,"" ) //TODO
-		default:
-			 handleError(w, http.StatusNotImplemented,"")
+	case "GET":
+		keys, ok := r.URL.Query()["key"]
+		if !ok || len(keys) < 1 {
+			handleError(w, http.StatusBadRequest, "Url Param 'key' is missing")
+			return
 		}
+		key := keys[0]
+		value, err := getValueFromRedisProxy(s, key)
+		if err != nil {
+			handleError(w, http.StatusNotFound, key+" not found: "+err.Error())
+			return
+		}
+		response := fmt.Sprintf(`{"key": "%s","value": "%s"}`, key, value)
+		fmt.Fprintln(w, response)
+	case "PUT":
+		handleError(w, http.StatusNotImplemented, "") //TODO
+	default:
+		handleError(w, http.StatusNotImplemented, "")
+	}
 	return
 
 }
 
-func  getValueFromRedisProxy(s *redisProxyServer, key string) (string, error){
+func getValueFromRedisProxy(s *redisProxyServer, key string) (string, error) {
 	value, err := s.Redis.Get(key)
-		if err != nil {
-			return "", err
+	if err != nil {
+		return "", err
 	}
 	return value.(string), err
 }
-
 
 func handleError(w http.ResponseWriter, status int, message string) {
 
