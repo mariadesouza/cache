@@ -9,9 +9,16 @@ import (
 //RedisProxy :
 type RedisProxy struct {
 	redisConn interface{}
-	cache     *lrucache.LRUCache
-	//cache *lrucache.LRUShardedCache
+	cache     *lrucache.LRUShardedCache
 }
+
+/*
+//To use lrucache
+type RedisProxy struct {
+	redisConn interface{}
+	cache     *lrucache.LRUCache
+}
+*/
 
 //New : create new redisproxy object
 func New(redisServer string, port string, cacheCapacity int, cacheExpirySeconds int64) (*RedisProxy, error) {
@@ -22,8 +29,8 @@ func New(redisServer string, port string, cacheCapacity int, cacheExpirySeconds 
 		return nil, err
 	}
 	expiryTime := time.Duration(cacheExpirySeconds)
-	redisproxy.cache = lrucache.New(cacheCapacity, expiryTime)
-	//redisproxy.cache = lrucache.NewShardedCache(cacheCapacity, expiryTime)
+	//redisproxy.cache = lrucache.New(cacheCapacity, expiryTime)
+	redisproxy.cache = lrucache.NewShardedCache(cacheCapacity, expiryTime)
 	return &redisproxy, nil
 }
 

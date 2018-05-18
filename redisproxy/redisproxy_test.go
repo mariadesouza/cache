@@ -25,8 +25,8 @@ func (f *mockRedis) Send(args ...string) error {
 func setupNewTest(cacheCapacity int, cacheExpirySeconds int64) (*RedisProxy, string, string) {
 	var redisproxy RedisProxy
 	expiryTime := time.Duration(cacheExpirySeconds)
-	redisproxy.cache = lrucache.New(cacheCapacity, expiryTime)
-	//redisproxy.cache = lrucache.NewShardedCache(cacheCapacity, expiryTime)
+	//redisproxy.cache = lrucache.New(cacheCapacity, expiryTime)
+	redisproxy.cache = lrucache.NewShardedCache(cacheCapacity, expiryTime)
 	redisproxy.redisConn = &mockRedis{}
 	value := "apple"
 	key := "fruit"

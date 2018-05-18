@@ -113,7 +113,6 @@ func (r *redisServerConn) Receive() ([]byte, error) {
 		result, err := r.readBulkString(line)
 		if err != nil {
 			fmt.Println(err)
-		} else {			fmt.Println(result)
 		}
 		return result, err
 	default:
