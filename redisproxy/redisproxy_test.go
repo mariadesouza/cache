@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mariadesouza/redisproxyserver/lrucache"
+	"github.com/mariadesouza/cache/lrucache"
 )
 
 // This will mock the RedisProxy struct from the redisproxy package

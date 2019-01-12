@@ -11,24 +11,24 @@ if [[ $ACTION == "start" && "$(curl -s -o /dev/null -w ''%{http_code}'' localhos
 fi
 
 if [[ $ACTION == "rebuild" ]]; then
-  if [ "$(docker ps -q -f name=segment-webserver)" ]; then
+  if [ "$(docker ps -q -f name=  cache-webserver)" ]; then
     echo "Stopping running containers"
     scripts/docker/stop
   fi
   echo "Building API server sources"
-  GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -a -o webserver/segment-webserver webserver/webserver.go || exit 1
+  GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -a -o webserver/cache-webserver webserver/webserver.go || exit 1
   echo "Building API server container"
   docker-compose up --build -d || exit 1
 else
   if [[ ! "$(docker images webserver -q)" ]]; then
     echo "Building API server sources"
-    GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -a -o webserver/segment-webserver webserver/webserver.go || exit 1
+    GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -a -o webserver/  cache-webserver webserver/webserver.go || exit 1
   fi
   echo "Starting API server container"
   docker-compose up -d || exit 1
 fi
 
-if [ -e webserver/segment-webserver ]; then rm webserver/segment-webserver; fi
+if [ -e webserver/  cache-webserver ]; then rm webserver/  cache-webserver; fi
 
 
 

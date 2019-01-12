@@ -3,8 +3,8 @@ services:
   redis:
     image: redis
 
-  segment-webserver:
-    image: segment-webserver
+  cache-webserver:
+    image: cache-webserver
     build:
       context: .
       dockerfile: webserver/Dockerfile
@@ -13,7 +13,7 @@ services:
     depends_on:
       - redis
     environment:
-      - SEGMENT_REDIS_SERVER=redis
-      - SEGMENT_REDIS_PORT=6379
-      - SEGMENT_CACHE_EXPIRY=180
-      - SEGMENT_CACHE_CAPACITY=10
+      - CACHE_REDIS_SERVER=redis
+      - CACHE_REDIS_PORT=6379
+      - CACHE_EXPIRY=180
+      - CACHE_CAPACITY=10

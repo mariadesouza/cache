@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	_ "github.com/mariadesouza/redisproxyserver/redisproxy"
+	_ "github.com/mariadesouza/cache/redisproxy"
 )
 
 func TestErrorResponsesHandlerRedisproxy(t *testing.T) {

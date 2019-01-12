@@ -41,11 +41,11 @@ The Redis client is not a full featured redis client. I have implemented the bas
 ## Config Environment variables Used
 
 The server can be configured by setting environment variables
-- SEGMENT_REDIS_SERVER
+- CACHE_REDIS_SERVER
   Address of the backing Redis
-- SEGMENT_REDIS_PORT
+- CACHE_REDIS_PORT
   Port of Redis server
-- SEGMENT_CACHE_EXPIRY
+- CACHE_CACHE_EXPIRY
   Cache expiry time in seconds
 
 For docker these are configured in the docker compose file

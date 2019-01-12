@@ -1,8 +1,8 @@
 FROM alpine
 MAINTAINER Maria De Souza <maria.g.desouza@gmail.com>
 
-COPY webserver/segment-webserver /
+COPY webserver/cache-webserver /
 
 EXPOSE 8082
 
-ENTRYPOINT ["/segment-webserver"]
+ENTRYPOINT ["/cache-webserver"]

@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"strconv"
 
-	"github.com/mariadesouza/redisproxyserver/redisproxy"
+	"github.com/mariadesouza/cache/redisproxy"
 )
 
 type redisProxyServer struct {
@@ -17,24 +17,24 @@ type redisProxyServer struct {
 
 func main() {
 
-	redisServer := os.Getenv("SEGMENT_REDIS_SERVER")
+	redisServer := os.Getenv("CACHE_REDIS_SERVER")
 	if redisServer == "" {
 		redisServer = "redis"
 	}
 
-	redisPort := os.Getenv("SEGMENT_REDIS_PORT")
+	redisPort := os.Getenv("CACHE_REDIS_PORT")
 	if redisPort == "" {
 		redisPort = "6379"
 	}
 
 	var cacheExpiry int64
-	cacheExpiry, err := strconv.ParseInt(os.Getenv("SEGMENT_CACHE_EXPIRY"), 10, 64)
+	cacheExpiry, err := strconv.ParseInt(os.Getenv("CACHE_EXPIRY"), 10, 64)
 	if err != nil || cacheExpiry == 0 {
 		cacheExpiry = 10
 	}
 
 	var cacheCapacity int
-	cacheCapacity, err = strconv.Atoi(os.Getenv("SEGMENT_CACHE_CAPACITY"))
+	cacheCapacity, err = strconv.Atoi(os.Getenv("CACHE_CAPACITY"))
 	if err != nil || cacheCapacity == 0 {
 		cacheCapacity = 1
 	}

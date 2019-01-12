@@ -3,7 +3,7 @@ package redisproxy
 import (
 	"time"
 
-	"github.com/mariadesouza/redisproxyserver/lrucache"
+	"github.com/mariadesouza/cache/lrucache"
 )
 
 //RedisProxy :
