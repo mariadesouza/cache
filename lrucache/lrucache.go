@@ -56,21 +56,22 @@ func (s *LRUCache) Set(key string, value interface{}) {
 	defer s.lock.Unlock()
 	// check if it exists already
 	if element, ok := s.items[key]; ok {
+		// update value
+		element.Value.(*node).value = value
 		//found item - promote it
 		s.doubleList.MoveToFront(element)
-		element.Value.(*node).key = key
-		element.Value.(*node).value = value
 		return
+	}
+	// remove the least recently used element from the back of the list if already at capacity
+	if s.doubleList.Len() == s.capacity {
+		//fmt.Println("exceeded capacity", s.doubleList.Len(), s.capacity)
+		last := s.doubleList.Back()
+		s.removeNode(last)
 	}
 	// make New - Add it to front of the list
 	expireTime := time.Now().Add(time.Second * s.ttlSeconds).UnixNano()
 	element := s.doubleList.PushFront(&node{key, value, expireTime})
-	// remove the least recently used element from the back of the list
-	if s.doubleList.Len() > s.capacity {
-		//fmt.Println("exceeded capacity")
-		last := s.doubleList.Back()
-		s.removeNode(last)
-	}
+
 	s.items[key] = element
 }
 
